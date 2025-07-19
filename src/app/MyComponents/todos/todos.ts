@@ -4,6 +4,8 @@ import {Todo} from "../../Todo";
 import { CommonModule } from '@angular/common';
 import { TodoItem } from "../todo-item/todo-item";
 import { AddTodo } from "../add-todo/add-todo";
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, PLATFORM_ID } from '@angular/core';
 
 
 @Component({
@@ -14,29 +16,19 @@ import { AddTodo } from "../add-todo/add-todo";
   styleUrl: './todos.css'
 })
 export class TodosComponent implements OnInit {
-
+  localItem!: string | null;
   todos: Todo[];
-  constructor(){
-    this.todos = [
-      {
-        sno: 2,
-        title: "This is title of the first to do",
-        desc: "Description 1",
-        active: true
-      },
-      {
-        sno: 3,
-        title: "This is title of the 2nd to do",
-        desc: "Description 2",
-        active: true
-      },
-      {
-        sno: 4,
-        title: "This is title of the 3rd to do",
-        desc: "Description 3",
-        active: true
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    if (isPlatformBrowser(this.platformId)) {
+      this.localItem = localStorage.getItem("todos");
+      if (this.localItem == null) {
+        this.todos = [];
+      } else {
+        this.todos = JSON.parse(this.localItem);
       }
-    ]
+    } else {
+      this.todos = [];
+    }
   }
   ngOnInit(): void {
   }
@@ -46,11 +38,21 @@ export class TodosComponent implements OnInit {
     const index = this.todos.indexOf(todo);
     this.todos.splice(index, 1);
     console.log("Todo has been deleted");
+    localStorage.setItem("todos", JSON.stringify(this.todos));
   }
 
   addToDo(todo:Todo){
     console.log(todo);
     this.todos.push(todo);
     console.log("New Todo has been added");
+    localStorage.setItem("todos", JSON.stringify(this.todos));
+  }
+
+  toggleToDo(todo:Todo){
+    const index = this.todos.indexOf(todo);
+    // this.todos.splice(index, 1);
+    // this.todos.push(todo);
+    this.todos[index].active = !this.todos[index].active;
+    localStorage.setItem("todos", JSON.stringify(this.todos));
   }
 }
